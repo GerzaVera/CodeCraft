@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html><head><base href=".">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de codigo live</title>
+<!-- Incluir CodeMirror para autocompletado -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/theme/monokai.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/show-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/xml-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/html-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/javascript-hint.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/css-hint.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.2/addon/hint/show-hint.min.css" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="app-title">CodeCraft</h1>
+        <div class="editors-container">
+            <div class="editor-section">
+                <div class="file-input-container">
+                    <label for="folder-input" class="file-input-label">Seleccionar Archivos del Proyecto</label>
+                    <input type="file" id="folder-input" webkitdirectory directory multiple>
+                    <div class="file-list"></div>
+                </div>
+
+                <div class="editor-container">
+                    <div class="code-header">
+                        <div class="label">HTML</div>
+                        <button onclick="copyHtml()">Copiar HTML</button>
+                    </div>
+                    <textarea id="html-editor">&amp;lt;div style=&amp;quot;padding: 20px;&amp;quot;&amp;gt;
+        &amp;lt;h1&amp;gt;Mi Primera P&amp;#xe1;gina Web&amp;lt;/h1&amp;gt;
+        &amp;lt;p&amp;gt;&amp;#xa1;Hola Mundo!&amp;lt;/p&amp;gt;
+        &amp;lt;button onclick=&amp;quot;saludar()&amp;quot;&amp;gt;&amp;#xa1;Haz clic!&amp;lt;/button&amp;gt;
+    &amp;lt;/div&amp;gt;</textarea>
+
+                    <div class="code-header">
+                        <div class="label">CSS</div>
+                        <button onclick="copyCss()">Copiar CSS</button>
+                    </div>
+                    <textarea id="css-editor">h1 {
+        color: #4CAF50;
+        font-family: Arial, sans-serif;
+    }
+
+    p {
+        color: #666;
+        font-size: 18px;
+    }
+
+    button {
+        background: #4CAF50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+    }</textarea>
+
+                    <div class="code-header">
+                        <div class="label">JavaScript</div>
+                        <button onclick="copyJs()">Copiar JavaScript</button>
+                    </div>
+                    <textarea id="js-editor">function saludar() {
+        alert(&amp;apos;&amp;#xa1;Hola! Este es un ejemplo de JavaScript&amp;apos;);
+    }</textarea>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <div class="code-header">
+                    <div class="label">Vista Previa</div>
+                    <div>
+                        <button onclick="resetToDefault()">Restaurar Contenido</button>
+                    </div>
+                </div>
+                <div class="preview-container">
+                    <iframe id="preview-frame"></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>const defaultHtml = `<div style="padding: 20px;">
+    <h1>Mi Primera Página Web</h1>
+    <p>¡Hola Mundo!</p>
+    <button onclick="saludar()">¡Haz clic!</button>
+</div>`;
+const defaultCss = `h1 {
+    color: #4CAF50;
+    font-family: Arial, sans-serif;
+}
+
+p {
+    color: #666;
+    font-size: 18px;
+}
+
+button {
+    background: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+}`;
+const defaultJs = `function saludar() {
+    alert('¡Hola! Este es un ejemplo de JavaScript');
+}`;
+let htmlEditor = CodeMirror.fromTextArea(document.getElementById('html-editor'), {
+  mode: 'xml',
+  theme: 'monokai',
+  lineNumbers: true,
+  autoCloseTags: true,
+  autoCloseBrackets: true,
+  extraKeys: {
+    "Ctrl-Space": "autocomplete"
+  },
+  hintOptions: {
+    completeSingle: false,
+    schemaInfo: {
+      'div': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null,
+          'data-*': null
+        }
+      },
+      'span': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null
+        }
+      },
+      'p': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null
+        }
+      },
+      'h1': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null
+        }
+      },
+      'h2': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null
+        }
+      },
+      'h3': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null
+        }
+      },
+      'h4': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null
+        }
+      },
+      'h5': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null
+        }
+      },
+      'h6': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null
+        }
+      },
+      'a': {
+        attrs: {
+          'href': null,
+          'target': ['_blank', '_self', '_parent', '_top'],
+          'class': null,
+          'id': null,
+          'rel': ['nofollow', 'noopener', 'noreferrer'],
+          'title': null
+        }
+      },
+      'img': {
+        attrs: {
+          'src': null,
+          'alt': null,
+          'class': null,
+          'id': null,
+          'width': null,
+          'height': null,
+          'loading': ['lazy', 'eager']
+        }
+      },
+      'input': {
+        attrs: {
+          'type': ['text', 'password', 'email', 'number', 'submit', 'button', 'checkbox', 'radio', 'file', 'hidden', 'color', 'date', 'datetime-local', 'month', 'range', 'search', 'tel', 'time', 'url', 'week'],
+          'class': null,
+          'id': null,
+          'name': null,
+          'placeholder': null,
+          'value': null,
+          'required': ['required'],
+          'disabled': ['disabled'],
+          'readonly': ['readonly'],
+          'min': null,
+          'max': null,
+          'pattern': null
+        }
+      },
+      'button': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'type': ['button', 'submit', 'reset'],
+          'onclick': null,
+          'disabled': ['disabled']
+        }
+      },
+      'form': {
+        attrs: {
+          'action': null,
+          'method': ['get', 'post'],
+          'class': null,
+          'id': null,
+          'enctype': ['multipart/form-data', 'application/x-www-form-urlencoded'],
+          'target': ['_blank', '_self', '_parent', '_top']
+        }
+      },
+      'select': {
+        attrs: {
+          'name': null,
+          'id': null,
+          'class': null,
+          'multiple': ['multiple'],
+          'required': ['required'],
+          'disabled': ['disabled']
+        }
+      },
+      'textarea': {
+        attrs: {
+          'name': null,
+          'id': null,
+          'class': null,
+          'rows': null,
+          'cols': null,
+          'placeholder': null,
+          'required': ['required'],
+          'disabled': ['disabled'],
+          'readonly': ['readonly']
+        }
+      },
+      'label': {
+        attrs: {
+          'for': null,
+          'class': null,
+          'id': null
+        }
+      },
+      'ul': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null
+        }
+      },
+      'ol': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null,
+          'type': ['1', 'A', 'a', 'I', 'i'],
+          'start': null
+        }
+      },
+      'li': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null,
+          'value': null
+        }
+      },
+      'table': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null,
+          'border': null,
+          'cellpadding': null,
+          'cellspacing': null
+        }
+      },
+      'tr': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null
+        }
+      },
+      'td': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null,
+          'colspan': null,
+          'rowspan': null
+        }
+      },
+      'th': {
+        attrs: {
+          'class': null,
+          'id': null,
+          'style': null,
+          'colspan': null,
+          'rowspan': null,
+          'scope': ['row', 'col', 'rowgroup', 'colgroup']
+        }
+      }
+    }
+  }
+});
+htmlEditor.on("keyup", function (cm, event) {
+  if (!cm.state.completionActive && event.keyCode > 64 && event.keyCode < 91 || event.keyCode === 219 || event.keyCode === 190 || event.keyCode === 189 || event.keyCode === 32) {
+    CodeMirror.commands.autocomplete(cm, null, {
+      completeSingle: false
+    });
+  }
+});
+let cssEditor = CodeMirror.fromTextArea(document.getElementById('css-editor'), {
+  mode: 'css',
+  theme: 'monokai',
+  lineNumbers: true,
+  extraKeys: {
+    "Ctrl-Space": "autocomplete"
+  },
+  hintOptions: {
+    completeSingle: false
+  }
+});
+let jsEditor = CodeMirror.fromTextArea(document.getElementById('js-editor'), {
+  mode: 'javascript',
+  theme: 'monokai',
+  lineNumbers: true,
+  extraKeys: {
+    "Ctrl-Space": "autocomplete"
+  },
+  hintOptions: {
+    completeSingle: false
+  }
+});
+document.getElementById('folder-input').addEventListener('change', function (e) {
+  const files = Array.from(e.target.files);
+  const fileList = document.querySelector('.file-list');
+  fileList.innerHTML = '';
+  files.forEach(file => {
+    if (file.name.endsWith('.html')) {
+      readFile(file, content => {
+        htmlEditor.setValue(content);
+        fileList.innerHTML += `<div>Cargado: ${file.name}</div>`;
+      });
+    } else if (file.name.endsWith('.css')) {
+      readFile(file, content => {
+        cssEditor.setValue(content);
+        fileList.innerHTML += `<div>Cargado: ${file.name}</div>`;
+      });
+    } else if (file.name.endsWith('.js')) {
+      readFile(file, content => {
+        jsEditor.setValue(content);
+        fileList.innerHTML += `<div>Cargado: ${file.name}</div>`;
+      });
+    }
+  });
+});
+function readFile(file, callback) {
+  const reader = new FileReader();
+  reader.onload = e => callback(e.target.result);
+  reader.readAsText(file);
+}
+cssEditor.on("keyup", function (cm, event) {
+  if (!cm.state.completionActive && event.keyCode != 13) {
+    CodeMirror.commands.autocomplete(cm, null, {
+      completeSingle: false
+    });
+  }
+});
+jsEditor.on("keyup", function (cm, event) {
+  if (!cm.state.completionActive && event.keyCode != 13) {
+    CodeMirror.commands.autocomplete(cm, null, {
+      completeSingle: false
+    });
+  }
+});
+function updatePreview() {
+  const htmlCode = htmlEditor.getValue();
+  const cssCode = cssEditor.getValue();
+  const jsCode = jsEditor.getValue();
+  const frame = document.getElementById('preview-frame');
+  const content = `
+                <html>
+                    <head>
+                        <style>${cssCode}</style>
+                    </head>
+                    <body>
+                        ${htmlCode}
+                        <script>${jsCode}<\/script>
+                    </body>
+                </html>
+            `;
+  frame.srcdoc = content;
+}
+function copyHtml() {
+  navigator.clipboard.writeText(htmlEditor.getValue()).then(() => alert('¡Código HTML copiado al portapapeles!'));
+}
+function copyCss() {
+  navigator.clipboard.writeText(cssEditor.getValue()).then(() => alert('¡Código CSS copiado al portapapeles!'));
+}
+function copyJs() {
+  navigator.clipboard.writeText(jsEditor.getValue()).then(() => alert('¡Código JavaScript copiado al portapapeles!'));
+}
+function resetToDefault() {
+  htmlEditor.setValue(defaultHtml);
+  cssEditor.setValue(defaultCss);
+  jsEditor.setValue(defaultJs);
+  updatePreview();
+}
+htmlEditor.on('change', updatePreview);
+cssEditor.on('change', updatePreview);
+jsEditor.on('change', updatePreview);
+window.onload = function () {
+  resetToDefault();
+};</script>
+</body></html>
